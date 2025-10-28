@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestore Link e Prezzi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .cta-button-gradient {
+            background-image: linear-gradient(to right, #E81C69 0%, #F09724 51%, #E81C69 100%);
+            background-size: 200% auto;
+            transition: background-position 0.5s ease;
+        }
+        .cta-button-gradient:hover {
+            background-position: right center;
+        }
+        .code-block {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #4b5563; /* gray-600 */
+        }
+        .input-field {
+             width: 100%;
+             background-color: #4a5568; /* gray-700 */
+             border: 1px solid #6b7280; /* gray-600 */
+             color: white;
+             border-radius: 0.375rem; /* rounded-md */
+             padding: 0.5rem; /* p-2 */
+             transition: all 0.2s;
+        }
+        .input-field:focus {
+            --tw-ring-color: #E81C69;
+            border-color: #E81C69;
+            box-shadow: 0 0 0 2px var(--tw-ring-color);
+        }
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+        /* Stili per il toggle */
+        #countdown-toggle:checked ~ .dot {
+            transform: translateX(100%);
+        }
+        #countdown-toggle:checked ~ .block {
+            background-color: #E81C69;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500">Gestore Configuratore Offerta</h1>
+            <p class="text-gray-400 mt-2">Aggiorna link, prezzi e stime, e genera il nuovo codice HTML con un clic.</p>
+        </header>
+
+        <main class="max-w-7xl mx-auto space-y-12">
+            <!-- SEZIONE SCADENZA OFFERTA -->
+            <div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-center">Gestione Scadenza Offerta</h2>
+                <div class="max-w-md mx-auto space-y-4">
+                    <div>
+                        <label for="countdown-date" class="block text-sm font-medium text-gray-300 mb-1">Data e Ora di Scadenza</label>
+                        <input type="datetime-local" id="countdown-date" class="input-field">
+                    </div>
+                     <div class="flex items-center justify-center pt-2">
+                        <label for="countdown-toggle" class="flex items-center cursor-pointer">
+                            <div class="relative">
+                                <input type="checkbox" id="countdown-toggle" class="sr-only" checked>
+                                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform"></div>
+                            </div>
+                            <div class="ml-3 text-gray-300 font-medium">
+                                Abilita Countdown
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEZIONE LINK PDF -->
+            <div class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-center">Gestione Link PDF</h2>
+                <div id="form-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold border-b-2 border-pink-500 pb-2">Prezzo Variabile</h3>
+                        <div><label for="var_lucegas" class="block text-sm font-medium text-gray-300 mb-1">Luce & Gas</label><input type="url" id="var_lucegas" class="input-field"></div>
+                        <div><label for="var_luce" class="block text-sm font-medium text-gray-300 mb-1">Solo Luce</label><input type="url" id="var_luce" class="input-field"></div>
+                        <div><label for="var_gas" class="block text-sm font-medium text-gray-300 mb-1">Solo Gas</label><input type="url" id="var_gas" class="input-field"></div>
+                    </div>
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold border-b-2 border-yellow-500 pb-2">Prezzo Fisso</h3>
+                        <div><label for="fix_lucegas" class="block text-sm font-medium text-gray-300 mb-1">Luce & Gas</label><input type="url" id="fix_lucegas" class="input-field"></div>
+                        <div><label for="fix_luce" class="block text-sm font-medium text-gray-300 mb-1">Solo Luce</label><input type="url" id="fix_luce" class="input-field"></div>
+                        <div><label for="fix_gas" class="block text-sm font-medium text-gray-300 mb-1">Solo Gas</label><input type="url" id="fix_gas" class="input-field"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE PREZZI OFFERTE -->
+            <div id="offers-form-container" class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-center">Gestione Prezzi Offerte</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Colonna Variabile -->
+                    <div class="space-y-6"><h3 class="text-xl font-bold border-b-2 border-pink-500 pb-2">Prezzo Variabile</h3>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h4 class="font-semibold">Solo Luce</h4>
+                            <div><label for="offer_var_luce_price" class="text-sm text-gray-300">Quota Fissa (€/mese)</label><input type="number" step="0.01" id="offer_var_luce_price" class="input-field"></div>
+                            <div><label for="offer_var_luce_details" class="text-sm text-gray-300">Prezzo Energia (es. PUN + 0,0145 €/kWh)</label><input type="text" id="offer_var_luce_details" class="input-field"></div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h4 class="font-semibold">Solo Gas</h4>
+                            <div><label for="offer_var_gas_price" class="text-sm text-gray-300">Quota Fissa (€/mese)</label><input type="number" step="0.01" id="offer_var_gas_price" class="input-field"></div>
+                            <div><label for="offer_var_gas_details" class="text-sm text-gray-300">Prezzo Gas (es. PSV + 0,09500 €/Smc)</label><input type="text" id="offer_var_gas_details" class="input-field"></div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h4 class="font-semibold">Luce & Gas</h4>
+                             <div class="grid grid-cols-2 gap-2">
+                                <div><label for="offer_var_lucegas_price_luce" class="text-sm text-gray-300">Quota Fissa Luce (€/mese)</label><input type="number" step="0.01" id="offer_var_lucegas_price_luce" class="input-field"></div>
+                                <div><label for="offer_var_lucegas_price_gas" class="text-sm text-gray-300">Quota Fissa Gas (€/mese)</label><input type="number" step="0.01" id="offer_var_lucegas_price_gas" class="input-field"></div>
+                            </div>
+                            <div><label for="offer_var_lucegas_luce" class="text-sm text-gray-300">Prezzo Energia Luce</label><input type="text" id="offer_var_lucegas_luce" class="input-field"></div>
+                            <div><label for="offer_var_lucegas_gas" class="text-sm text-gray-300">Prezzo Gas</label><input type="text" id="offer_var_lucegas_gas" class="input-field"></div>
+                        </div>
+                    </div>
+                    <!-- Colonna Fisso -->
+                    <div class="space-y-6"><h3 class="text-xl font-bold border-b-2 border-yellow-500 pb-2">Prezzo Fisso</h3>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h4 class="font-semibold">Solo Luce</h4>
+                            <div><label for="offer_fix_luce_price" class="text-sm text-gray-300">Quota Fissa (€/mese)</label><input type="number" step="0.01" id="offer_fix_luce_price" class="input-field"></div>
+                            <div><label for="offer_fix_luce_f1" class="text-sm text-gray-300">Prezzo Fascia 1 (€/kWh)</label><input type="text" id="offer_fix_luce_f1" class="input-field"></div>
+                            <div><label for="offer_fix_luce_f2" class="text-sm text-gray-300">Prezzo Fascia 2 (€/kWh)</label><input type="text" id="offer_fix_luce_f2" class="input-field"></div>
+                            <div><label for="offer_fix_luce_f3" class="text-sm text-gray-300">Prezzo Fascia 3 (€/kWh)</label><input type="text" id="offer_fix_luce_f3" class="input-field"></div>
+                        </div>
+                         <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h4 class="font-semibold">Solo Gas</h4>
+                            <div><label for="offer_fix_gas_price" class="text-sm text-gray-300">Quota Fissa (€/mese)</label><input type="number" step="0.01" id="offer_fix_gas_price" class="input-field"></div>
+                            <div><label for="offer_fix_gas_details" class="text-sm text-gray-300">Prezzo Gas (€/Smc)</label><input type="text" id="offer_fix_gas_details" class="input-field"></div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h4 class="font-semibold">Luce & Gas</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div><label for="offer_fix_lucegas_price_luce" class="text-sm text-gray-300">Quota Fissa Luce (€/mese)</label><input type="number" step="0.01" id="offer_fix_lucegas_price_luce" class="input-field"></div>
+                                <div><label for="offer_fix_lucegas_price_gas" class="text-sm text-gray-300">Quota Fissa Gas (€/mese)</label><input type="number" step="0.01" id="offer_fix_lucegas_price_gas" class="input-field"></div>
+                            </div>
+                            <div><label for="offer_fix_lucegas_f1" class="text-sm text-gray-300">Luce Fascia 1</label><input type="text" id="offer_fix_lucegas_f1" class="input-field"></div>
+                            <div><label for="offer_fix_lucegas_f2" class="text-sm text-gray-300">Luce Fascia 2</label><input type="text" id="offer_fix_lucegas_f2" class="input-field"></div>
+                            <div><label for="offer_fix_lucegas_f3" class="text-sm text-gray-300">Luce Fascia 3</label><input type="text" id="offer_fix_lucegas_f3" class="input-field"></div>
+                            <div><label for="offer_fix_lucegas_gas" class="text-sm text-gray-300">Prezzo Gas</label><input type="text" id="offer_fix_lucegas_gas" class="input-field"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE STIME MENSILI -->
+            <div id="estimates-form-container" class="bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-center">Gestione Stime Mensili (€)</h2>
+
+                <h3 class="text-xl font-semibold mb-4 text-center text-gray-300">Stime Forniture Singole</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Colonna Stime Variabile (Singole) -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold border-b-2 border-pink-500 pb-2">Stime Variabile</h4>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Luce</h5>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_var_luce_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_var_luce_single" class="input-field"></div>
+                                <div><label for="est_var_luce_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_var_luce_coppia" class="input-field"></div>
+                                <div><label for="est_var_luce_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_var_luce_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Gas</h5>
+                             <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_var_gas_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_var_gas_single" class="input-field"></div>
+                                <div><label for="est_var_gas_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_var_gas_coppia" class="input-field"></div>
+                                <div><label for="est_var_gas_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_var_gas_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Colonna Stime Fisso (Singole) -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold border-b-2 border-yellow-500 pb-2">Stime Fisso</h4>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Luce</h5>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_fix_luce_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_fix_luce_single" class="input-field"></div>
+                                <div><label for="est_fix_luce_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_fix_luce_coppia" class="input-field"></div>
+                                <div><label for="est_fix_luce_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_fix_luce_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Gas</h5>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_fix_gas_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_fix_gas_single" class="input-field"></div>
+                                <div><label for="est_fix_gas_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_fix_gas_coppia" class="input-field"></div>
+                                <div><label for="est_fix_gas_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_fix_gas_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4 text-center text-gray-300 border-t border-gray-700 pt-8">Stime Forniture Dual (Luce & Gas)</h3>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Colonna Stime Variabile (Dual) -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold border-b-2 border-pink-500 pb-2">Stime Variabile</h4>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Luce per Dual</h5>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_var_luce_lucegas_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_var_luce_lucegas_single" class="input-field"></div>
+                                <div><label for="est_var_luce_lucegas_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_var_luce_lucegas_coppia" class="input-field"></div>
+                                <div><label for="est_var_luce_lucegas_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_var_luce_lucegas_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Gas per Dual</h5>
+                             <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_var_gas_lucegas_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_var_gas_lucegas_single" class="input-field"></div>
+                                <div><label for="est_var_gas_lucegas_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_var_gas_lucegas_coppia" class="input-field"></div>
+                                <div><label for="est_var_gas_lucegas_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_var_gas_lucegas_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Colonna Stime Fisso (Dual) -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold border-b-2 border-yellow-500 pb-2">Stime Fisso</h4>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Luce per Dual</h5>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_fix_luce_lucegas_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_fix_luce_lucegas_single" class="input-field"></div>
+                                <div><label for="est_fix_luce_lucegas_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_fix_luce_lucegas_coppia" class="input-field"></div>
+                                <div><label for="est_fix_luce_lucegas_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_fix_luce_lucegas_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg space-y-3"><h5 class="font-semibold">Gas per Dual</h5>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div><label for="est_fix_gas_lucegas_single" class="text-sm text-gray-300">Single</label><input type="number" id="est_fix_gas_lucegas_single" class="input-field"></div>
+                                <div><label for="est_fix_gas_lucegas_coppia" class="text-sm text-gray-300">Coppia</label><input type="number" id="est_fix_gas_lucegas_coppia" class="input-field"></div>
+                                <div><label for="est_fix_gas_lucegas_famiglia" class="text-sm text-gray-300">Famiglia</label><input type="number" id="est_fix_gas_lucegas_famiglia" class="input-field"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- BOTTONE E RISULTATO -->
+            <div class="mt-8 text-center">
+                <button id="generate-btn" class="cta-button-gradient text-white font-bold py-3 px-12 rounded-full text-lg shadow-xl transform hover:scale-105 transition-transform">
+                    Genera Codice HTML
+                </button>
+            </div>
+            
+            <div id="result-container" class="mt-10 hidden">
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                    <h2 class="text-2xl font-bold">Codice Aggiornato</h2>
+                     <button id="copy-btn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" /></svg>
+                        <span id="copy-btn-text">Copia Codice</span>
+                    </button>
+                </div>
+                <div class="code-block bg-gray-800 rounded-lg p-4">
+                    <pre><code id="output-code" class="language-html text-sm"></code></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const originalHtmlContent = `
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vantaggi e Configuratore VIVI energia</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6; /* gray-100 */
+        }
+
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+
+        /* Stili dalla Spiegazione */
+        .bonus-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .bonus-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .counter-value, .bonus-value, .doubled-indicator {
+            transition: all 0.3s ease-in-out;
+        }
+        .plus-sign {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+        }
+        .plus-sign.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .doubled-indicator {
+            max-width: 100px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .doubled-indicator.opacity-0 {
+            max-width: 0;
+        }
+
+        /* Stili dal Configuratore */
+        .button-selector {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        .button-selector input { display: none; }
+        .button-selector label {
+            flex: 1;
+            text-align: center;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 9999px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .button-selector label:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .button-selector img {
+            height: 24px;
+            width: auto;
+            transition: filter .2s ease-in-out;
+        }
+
+        .button-selector input:checked + label img {
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Stili Accordion Mobile */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+        .accordion-header.active + .accordion-content {
+            max-height: 500px; 
+        }
+        .accordion-header .accordion-arrow {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-header.active .accordion-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Stili Gradiente */
+        .text-vivi-gradient {
+            background-image: linear-gradient(to right, #E81C69, #F09724);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+        .cta-button-gradient {
+            background-image: linear-gradient(to right, #E81C69 0%, #F09724 51%, #E81C69 100%);
+            background-size: 200% auto;
+            transition: background-position 0.5s ease-in-out;
+        }
+        .cta-button-gradient:hover {
+            background-position: right center;
+        }
+        .button-selector input:checked + label {
+            color: #ffffff;
+            background-image: linear-gradient(to right, #E81C69, #F09724);
+            border-color: transparent;
+            box-shadow: 0 4px 14px -4px rgba(232, 28, 105, 0.4);
+        }
+        .button-selector input:checked + label .material-symbols-outlined {
+            color: white;
+        }
+        .peer:checked ~ .toggle-gradient {
+            background-image: linear-gradient(to right, #E81C69, #F09724) !important;
+        }
+
+        /* Stili per il Popup */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .popup-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            width: 90%;
+            max-width: 550px;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .popup-overlay.active .popup-content {
+            transform: scale(1);
+        }
+        .popup-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .popup-option:hover {
+            border-color: #d1d5db;
+            background-color: #f9fafb;
+        }
+        .popup-option.primary {
+            border-color: transparent;
+            color: white;
+        }
+        .popup-option-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #popup-continue .popup-option-icon img {
+             filter: brightness(0) invert(1);
+        }
+
+        /* Stili Countdown Google-style */
+        .countdown-container-google {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .countdown-item-google {
+            text-align: center;
+        }
+        .countdown-value-google {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f2937;
+            line-height: 1;
+            min-width: 44px;
+        }
+        .countdown-separator-google {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #9ca3af;
+            padding: 0 0.25rem;
+        }
+        .countdown-label-google {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .fade-in-fast { animation: fadeIn 0.3s ease-out forwards; }
+
+        #price-type-description p {
+            transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        #price-type-description p.hidden {
+            max-height: 0;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto py-12 px-4 space-y-16 text-left">
+
+        <!-- SEZIONE SPIEGAZIONE PREMI -->
+        <div>
+            <h2 class="text-3xl font-extrabold text-center mb-8 text-vivi-gradient">COME TI PREMIA VIVICONSAPEVOLE</h2>
+            <main class="w-full max-w-5xl mx-auto">
+                <section class="bg-white rounded-3xl shadow-2xl shadow-gray-300/30 overflow-hidden">
+                    <div class="p-4 sm:p-6 md:p-8">
+                        <!-- Vista Desktop -->
+                        <div class="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-center">
+                            <div class="lg:col-span-2 space-y-3 sm:space-y-4">
+                                <!-- Bonus Sprint -->
+                                <div id="card1" class="bonus-card flex items-center gap-4 p-3 sm:p-4 bg-gray-50 rounded-2xl border">
+                                    <div class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-[#E81C69]/10 rounded-xl flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                            <defs>
+                                                <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                    <stop offset="0%" stop-color="#E81C69" />
+                                                    <stop offset="100%" stop-color="#F09724" />
+                                                </linearGradient>
+                                            </defs>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" stroke="url(#icon-gradient)" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 text-xs sm:text-sm">Dopo 6 mesi</p>
+                                        <h3 class="text-base sm:text-lg font-bold text-gray-800">Bonus Sprint</h3>
+                                    </div>
+                                    <div class="ml-auto text-right flex-shrink-0">
+                                        <p class="text-xl sm:text-2xl font-bold text-gray-900"><span class="bonus-value" data-value="60">60</span>€</p>
+                                        <p class="text-xs text-gray-500">Una tantum a fornitura</p>
+                                    </div>
+                                </div>
+                                <div id="plus1" class="plus-sign flex justify-center">
+                                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                </div>
+                                <!-- Bonus Mensile -->
+                                <div id="card2" class="bonus-card flex items-center gap-4 p-3 sm:p-4 bg-gray-50 rounded-2xl border">
+                                    <div class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-[#E81C69]/10 rounded-xl flex items-center justify-center">
+                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="url(#icon-gradient)" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-grow">
+                                        <p class="text-gray-500 text-xs sm:text-sm">Dal 2° anno</p>
+                                        <h3 class="text-base sm:text-lg font-bold text-gray-800">Bonus "Si può fare di meno"</h3>
+                                        <p class="text-xs text-gray-500 mt-1">Per ogni mese in cui consumi meno.</p>
+                                    </div>
+                                     <div class="ml-auto text-right flex-shrink-0">
+                                        <p id="bonus-flex-2" class="w-full text-xl sm:text-2xl font-bold text-gray-900 flex items-center justify-end">
+                                            <span><span class="bonus-value" data-value="3">3</span>€/mese</span>
+                                            <span class="doubled-indicator opacity-0 flex items-center gap-1 text-vivi-gradient font-bold text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="url(#gradient-stroke)" stroke-width="2"><defs><linearGradient id="gradient-stroke" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#E81C69" /><stop offset="100%" stop-color="#F09724" /></linearGradient></defs><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg><span>x2</span></span>
+                                        </p>
+                                        <p class="text-xs text-gray-500">a fornitura</p>
+                                    </div>
+                                </div>
+                                <div id="plus2" class="plus-sign flex justify-center">
+                                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                </div>
+                                <!-- Super Bonus -->
+                                <div id="card3" class="bonus-card flex items-center gap-4 p-3 sm:p-4 bg-gray-50 rounded-2xl border">
+                                   <div class="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-[#E81C69]/10 rounded-xl flex items-center justify-center">
+                                       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                           <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke="url(#icon-gradient)" />
+                                       </svg>
+                                   </div>
+                                   <div class="flex-grow">
+                                       <p class="text-gray-500 text-xs sm:text-sm">Al 24° mese</p>
+                                       <h3 class="text-base sm:text-lg font-bold text-gray-800">Super Bonus</h3>
+                                       <p class="text-xs text-gray-500 mt-1">Se il consumo del 2° anno è inferiore.</p>
+                                   </div>
+                                    <div class="ml-auto text-right flex-shrink-0">
+                                        <p id="bonus-flex-3" class="w-full text-xl sm:text-2xl font-bold text-gray-900 flex items-center justify-end">
+                                            <span><span class="bonus-value" data-value="36">36</span>€</span>
+                                            <span class="doubled-indicator opacity-0 flex items-center gap-1 text-vivi-gradient font-bold text-lg"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="url(#gradient-stroke)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg><span>x2</span></span>
+                                        </p>
+                                        <p class="text-xs text-gray-500">Una tantum a fornitura</p>
+                                   </div>
+                                </div>
+                            </div>
+                             <!-- Contatore Totale Desktop -->
+                            <div class="text-center bg-gray-800 text-white rounded-3xl p-6 lg:p-8 border border-gray-200 h-full flex flex-col justify-center">
+                                <p id="total-top-text" class="font-semibold text-gray-400">Fino a</p>
+                                <p class="font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter my-1">
+                                    <span class="counter-value" id="total-bonus">0</span><span class="text-2xl sm:text-3xl lg:text-4xl text-gray-400">€</span>
+                                </p>
+                                <p id="total-bottom-text" class="font-semibold text-gray-400">a fornitura</p>
+                                <p id="doubled-info" class="font-semibold h-6 transition-opacity duration-300 opacity-0 mt-1 text-sm text-vivi-gradient">Vantaggi Raddoppiati!</p>
+                            </div>
+                        </div>
+
+                        <!-- Vista Mobile (Accordion) -->
+                        <div class="block lg:hidden space-y-3">
+                            <!-- Accordion Item 1 -->
+                            <div class="bg-gray-50 rounded-2xl border overflow-hidden">
+                                <button class="accordion-header w-full flex items-center justify-between p-4 text-left">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex-shrink-0 w-12 h-12 bg-[#E81C69]/10 rounded-xl flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" stroke="url(#icon-gradient)" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500 text-xs">Dopo 6 mesi</p>
+                                            <h3 class="font-bold text-gray-800">Bonus Sprint</h3>
+                                        </div>
+                                    </div>
+                                    <svg class="accordion-arrow w-6 h-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="p-4 pt-0 text-right">
+                                        <p class="text-xl font-bold text-gray-900">60€</p>
+                                        <p class="text-xs text-gray-500">Una tantum a fornitura</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Accordion Item 2 -->
+                             <div class="bg-gray-50 rounded-2xl border overflow-hidden">
+                                <button class="accordion-header w-full flex items-center justify-between p-4 text-left">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex-shrink-0 w-12 h-12 bg-[#E81C69]/10 rounded-xl flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="url(#icon-gradient)" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <p class="text-gray-500 text-xs">Dal 2° anno</p>
+                                            <h3 class="font-bold text-gray-800">Bonus "Si può fare di meno"</h3>
+                                        </div>
+                                    </div>
+                                    <svg class="accordion-arrow w-6 h-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div class="accordion-content">
+                                    <div class="p-4 pt-0 text-right">
+                                        <p class="text-xl font-bold text-gray-900">3€/mese</p>
+                                        <p class="text-xs text-gray-500 mt-1">Per ogni mese in cui consumi meno. Raddoppiabile a 6€/mese.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Accordion Item 3 -->
+                            <div class="bg-gray-50 rounded-2xl border overflow-hidden">
+                                <button class="accordion-header w-full flex items-center justify-between p-4 text-left">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex-shrink-0 w-12 h-12 bg-[#E81C69]/10 rounded-xl flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke="url(#icon-gradient)" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <p class="text-gray-500 text-xs">Al 24° mese</p>
+                                            <h3 class="font-bold text-gray-800">Super Bonus</h3>
+                                        </div>
+                                    </div>
+                                    <svg class="accordion-arrow w-6 h-6 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div class="accordion-content">
+                                     <div class="p-4 pt-0 text-right">
+                                        <p class="text-xl font-bold text-gray-900">36€</p>
+                                        <p class="text-xs text-gray-500 mt-1">Se il consumo del 2° anno è inferiore. Raddoppiabile a 72€.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Contatore Totale Mobile -->
+                            <div class="text-center bg-gray-800 text-white rounded-3xl p-6 mt-4 flex flex-col justify-center">
+                                <p id="total-top-text-mobile" class="font-semibold text-gray-400">Fino a</p>
+                                <p class="font-black text-5xl tracking-tighter my-1">
+                                    <span class="counter-value" id="total-bonus-mobile">0</span><span class="text-3xl text-gray-400">€</span>
+                                </p>
+                                <p id="total-bottom-text-mobile" class="font-semibold text-gray-400">a fornitura</p>
+                                <p id="doubled-info-mobile" class="font-semibold h-6 transition-opacity duration-300 opacity-0 mt-1 text-sm text-vivi-gradient">Vantaggi Raddoppiati!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sezione Toggle -->
+                    <div class="bg-pink-50/50 p-6 border-t text-center sm:text-left">
+                        <div class="flex flex-col lg:flex-row items-center justify-center gap-6 max-w-5xl mx-auto">
+                            <div class="flex-grow flex items-center gap-4">
+                                <div class="text-vivi-gradient">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                                </div>
+                                <div>
+                                   <h4 class="text-base sm:text-lg font-bold text-gray-900">Raddoppia i bonus acquistando una soluzione ad alta efficienza!</h4>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                <span class="text-gray-600 font-medium text-sm">Standard</span>
+                                <label for="efficiency-toggle" class="relative inline-block w-12 h-7 cursor-pointer">
+                                    <input type="checkbox" id="efficiency-toggle" class="peer sr-only">
+                                    <div class="w-full h-full bg-gray-300 rounded-full transition-colors toggle-gradient"></div>
+                                    <div class="absolute top-1 left-1 bg-white w-5 h-5 rounded-full shadow-md transition-transform peer-checked:translate-x-full"></div>
+                                </label>
+                                <span class="font-bold text-sm text-vivi-gradient">Raddoppia</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-3 max-w-5xl mx-auto">*Attiva l'opzione per simulare. Il raddoppio si applica ai bonus del 2° anno con l'acquisto di una soluzione come caldaie o climatizzatori.</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- SEZIONE CONFIGURATORE -->
+        <div>
+            <h2 class="text-3xl font-extrabold text-center mb-2 text-vivi-gradient">CONFIGURA LA TUA OFFERTA</h2>
+            <div id="countdown-timer" class="text-center mb-8"></div>
+             <main class="w-full max-w-5xl mx-auto">
+                <section class="bg-white rounded-3xl shadow-2xl shadow-gray-300/30 overflow-hidden">
+                     <div class="grid grid-cols-1 lg:grid-cols-2">
+                        <div class="p-4 sm:p-6 md:p-8 space-y-6">
+                            <div class="bg-gray-50 p-5 rounded-2xl border">
+                                <h3 class="font-bold text-gray-800 mb-4 text-lg text-center">Cosa desideri?</h3>
+                                <div>
+                                     <h4 class="font-medium text-gray-600 mb-2 text-sm text-center">Seleziona la fornitura</h4>
+                                     <div class="button-selector" id="supply-control">
+                                        <input type="radio" name="supply" id="luce" value="luce">
+                                        <label for="luce">
+                                            <span class="material-symbols-outlined">lightbulb</span>
+                                            <span>Luce</span>
+                                        </label>
+                                        <input type="radio" name="supply" id="gas" value="gas">
+                                        <label for="gas">
+                                             <span class="material-symbols-outlined">mode_heat</span>
+                                            <span>Gas</span>
+                                        </label>
+                                        <input type="radio" name="supply" id="lucegas" value="lucegas">
+                                        <label for="lucegas">
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">lightbulb</span>
+                                            <span class="material-symbols-outlined" style="font-size: 18px;">mode_heat</span>
+                                            <span>Luce & Gas</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="profiling-box" class="bg-gray-50 p-5 rounded-2xl border hidden">
+                                <div id="price-type-container" class="mb-2">
+                                    <h3 class="font-bold text-gray-800 mb-4 text-lg text-center">Scegli il tipo di prezzo</h3>
+                                    <div class="button-selector" id="price-type-control">
+                                        <input type="radio" name="price-type" id="fisso" value="fisso" checked>
+                                        <label for="fisso">
+                                            <span class="material-symbols-outlined">lock</span>
+                                            <span>Fisso</span>
+                                        </label>
+                                        <input type="radio" name="price-type" id="variabile" value="variabile">
+                                        <label for="variabile">
+                                             <span class="material-symbols-outlined">equalizer</span>
+                                            <span>Variabile</span>
+                                        </label>
+                                    </div>
+                                     <div id="price-type-description" class="mt-4 text-center text-sm text-gray-600 px-2">
+                                        <p id="desc-fisso">Desideri stabilità nei costi di luce e gas per la tua casa con un <strong>prezzo fisso garantito per 24 mesi.</strong></p>
+                                        <p id="desc-variabile" class="hidden">Desideri un'offerta che colga le <strong>opportunità di variazione dei prezzi nel mercato.</strong></p>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                     <h3 class="font-bold text-gray-800 mb-4 text-lg text-center">Quante persone vivono in casa?</h3>
+                                     <div class="button-selector" id="people-control">
+                                        <input type="radio" name="people" id="single" value="single" checked>
+                                        <label for="single">
+                                            <span class="material-symbols-outlined" style="font-size: 20px;">person</span>
+                                            <span>Single</span>
+                                        </label>
+                                        <input type="radio" name="people" id="coppia" value="coppia">
+                                        <label for="coppia">
+                                            <span class="material-symbols-outlined" style="font-size: 20px;">group</span>
+                                            <span>Coppia</span>
+                                        </label>
+                                        <input type="radio" name="people" id="famiglia" value="famiglia">
+                                        <label for="famiglia">
+                                            <span class="material-symbols-outlined" style="font-size: 20px;">family_restroom</span>
+                                            <span>Famiglia</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-4 sm:p-6 md:p-8 text-white h-full flex flex-col">
+                            <div class="mb-4 flex justify-between items-center gap-4 flex-wrap">
+                                <h2 class="text-2xl font-bold text-white">Il tuo riepilogo</h2>
+                            </div>
+                            <div id="results-container" class="flex-grow flex flex-col justify-center">
+                                <!-- Il risultato verrà iniettato qui -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div id="operation-popup" class="popup-overlay">
+        <div class="popup-content space-y-6">
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-gray-800">Seleziona il tipo di operazione</h3>
+                <p class="text-gray-500 mt-2">L'offerta è sottoscrivibile solo se passi da un altro operatore e le forniture sono intestate a te.</p>
+            </div>
+
+            <div class="space-y-4">
+                <button id="popup-continue" class="popup-option primary cta-button-gradient w-full">
+                    <div class="popup-option-icon">
+                        <img src="https://vivienergia.imgix.net/uploads/2025/09/23161900/cambio_fornitore.png" alt="Cambio Fornitore">
+                    </div>
+                    <div>
+                        <h4 class="font-bold">PASSAGGIO A VIVI ENERGIA</h4>
+                        <p class="text-sm opacity-90">Se hai una fornitura già attiva con un altro fornitore.</p>
+                    </div>
+                </button>
+                
+                <p class="text-center text-sm text-gray-400 pt-2">Per le seguenti operazioni, contattaci:</p>
+                
+                <a href="mailto:servizioclienti@vivienergia.it" class="popup-option w-full text-left">
+                    <div class="popup-option-icon">
+                       <img src="https://vivienergia.imgix.net/uploads/2025/09/23161857/nuova_attivazione.png" alt="Nuova Attivazione">
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">NUOVA ATTIVAZIONE</h4>
+                        <p class="text-sm text-gray-600">Se vuoi attivare una fornitura mai attivata.</p>
+                    </div>
+                </a>
+
+                <a href="mailto:servizioclienti@vivienergia.it" class="popup-option w-full text-left">
+                    <div class="popup-option-icon">
+                        <img src="https://vivienergia.imgix.net/uploads/2025/09/23161859/voltura.png" alt="Voltura">
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">VOLTURA</h4>
+                        <p class="text-sm text-gray-600">Se vuoi modificare l'intestatario della fornitura.</p>
+                    </div>
+                </a>
+                 <a href="mailto:servizioclienti@vivienergia.it" class="popup-option w-full text-left">
+                    <div class="popup-option-icon">
+                       <img src="https://vivienergia.imgix.net/uploads/2025/09/23161858/subentro.png" alt="Subentro">
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">SUBENTRO</h4>
+                        <p class="text-sm text-gray-600">Se il contratto è stato chiuso e devi riattivarlo.</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SCRIPT SPIEGAZIONE ---
+            const toggle = document.getElementById('efficiency-toggle');
+            const totalBonusEl = document.getElementById('total-bonus');
+            const doubledInfoEl = document.getElementById('doubled-info');
+            const counterValueEl = document.querySelector('#total-bonus');
+            const totalTopText = document.getElementById('total-top-text');
+            const totalBottomText = document.getElementById('total-bottom-text');
+            const bonusCards = [document.getElementById('card1'), document.getElementById('plus1'), document.getElementById('card2'), document.getElementById('plus2'), document.getElementById('card3')];
+            const totalBonusMobileEl = document.getElementById('total-bonus-mobile');
+            const doubledInfoMobileEl = document.getElementById('doubled-info-mobile');
+            const counterValueMobileEl = document.querySelector('#total-bonus-mobile');
+            const totalTopTextMobile = document.getElementById('total-top-text-mobile');
+            const totalBottomTextMobile = document.getElementById('total-bottom-text-mobile');
+            const doubledIndicators = document.querySelectorAll('.doubled-indicator');
+            const bonusFlex2 = document.getElementById('bonus-flex-2');
+            const bonusFlex3 = document.getElementById('bonus-flex-3');
+            const baseTotals = { sprint: 60, monthly: 36, super: 36 };
+            let isDoubled = false;
+
+            function animateCountUp(element, endValue, duration = 1000) {
+                if (!element) return;
+                let startValue = parseInt(element.textContent.replace(/\\./g, '')) || 0;
+                if (startValue === endValue) return;
+                let startTime = null;
+                function animation(currentTime) {
+                    if (startTime === null) startTime = currentTime;
+                    const progress = Math.min((currentTime - startTime) / duration, 1);
+                    const currentValue = Math.floor(progress * (endValue - startValue) + startValue);
+                    element.textContent = currentValue.toLocaleString('it-IT');
+                    if (progress < 1) requestAnimationFrame(animation);
+                }
+                requestAnimationFrame(animation);
+            }
+
+            function updateValues() {
+                isDoubled = toggle.checked;
+                const multiplier = isDoubled ? 2 : 1;
+                const newTotal = baseTotals.sprint + (baseTotals.monthly * multiplier) + (baseTotals.super * multiplier);
+                
+                animateCountUp(totalBonusEl, newTotal);
+                if(doubledInfoEl) doubledInfoEl.classList.toggle('opacity-0', !isDoubled);
+                if(counterValueEl) counterValueEl.classList.toggle('text-vivi-gradient', isDoubled);
+                if(totalTopText) totalTopText.textContent = isDoubled ? 'Bonus massimo' : 'Fino a';
+                if(totalBottomText) totalBottomText.textContent = isDoubled ? 'a fornitura*' : 'a fornitura';
+                doubledIndicators.forEach(indicator => indicator.classList.toggle('opacity-0', !isDoubled));
+
+                animateCountUp(totalBonusMobileEl, newTotal);
+                if(doubledInfoMobileEl) doubledInfoMobileEl.classList.toggle('opacity-0', !isDoubled);
+                if(counterValueMobileEl) counterValueMobileEl.classList.toggle('text-vivi-gradient', isDoubled);
+                if(totalTopTextMobile) totalTopTextMobile.textContent = isDoubled ? 'Bonus massimo' : 'Fino a';
+                if(totalBottomTextMobile) totalBottomTextMobile.textContent = isDoubled ? 'a fornitura*' : 'a fornitura';
+
+                if (bonusFlex2) bonusFlex2.classList.toggle('gap-2', isDoubled);
+                if (bonusFlex3) bonusFlex3.classList.toggle('gap-2', isDoubled);
+            }
+
+            function initialAnimation() {
+                 let delay = 0;
+                 bonusCards.forEach(card => {
+                     if(card) setTimeout(() => card.classList.add('visible'), delay);
+                     delay += 250;
+                 });
+                 setTimeout(() => {
+                    const initialTotal = baseTotals.sprint + baseTotals.monthly + baseTotals.super;
+                    animateCountUp(totalBonusEl, initialTotal);
+                    animateCountUp(totalBonusMobileEl, initialTotal);
+                 }, delay);
+            }
+
+            if (toggle) toggle.addEventListener('change', updateValues);
+            initialAnimation();
+            
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    header.classList.toggle('active');
+                });
+            });
+
+            // COUNTDOWN_ENABLED_PLACEHOLDER
+            
+            // --- SCRIPT CONFIGURATORE ---
+            const OFFERS = {
+                energy: {
+                    luce: { fisso: { name: "VIVIconsapevole Luce Fix", price: 10.00, details: [{ label: "Fascia 1", value: "0,1122 €/kWh" }, { label: "Fascia 2", value: "0,1200 €/kWh" }, { label: "Fascia 3", value: "0,1007 €/kWh" }] }, variabile: { name: "VIVIconsapevole Luce Flex", price: 10.00, details: [{ label: "Prezzo energia", value: "PUN + 0,0145 €/kWh" }] } },
+                    gas: { fisso: { name: "VIVIconsapevole Gas Fix", price: 10.00, details: [{ label: "Prezzo gas", value: "0,4130 €/Smc" }] }, variabile: { name: "VIVIconsapevole Gas Flex", price: 10.00, details: [{ label: "Prezzo gas", value: "PSV + 0,09500 €/Smc" }] } },
+                    lucegas: { fisso: { name: "VIVIconsapevole LuceGas Fix", price_luce: 10.00, price_gas: 10.00, details: { luce: [{ label: 'Fascia 1', value: '0,1122 €/kWh' }, { label: 'Fascia 2', value: '0,1200 €/kWh' }, { label: 'Fascia 3', value: '0,1007 €/kWh' }], gas: [{ label: 'Prezzo gas', value: '0,4120 €/Smc' }] } }, variabile: { name: "VIVIconsapevole LuceGas Flex", price_luce: 10.00, price_gas: 10.00, details: { luce: [{ label: 'Prezzo energia', value: 'PUN + 0,0140 €/kWh' }], gas: [{ label: 'Prezzo gas', value: 'PSV + 0,09000 €/Smc' }] } } }
+                }
+            };
+            const ESTIMATES = {
+                fisso: {
+                    luce: { single: 32, coppia: 41, famiglia: 48 },
+                    gas: { single: 35, coppia: 47, famiglia: 62 },
+                    luce_lucegas: { single: 13, coppia: 15, famiglia: 18 },
+                    gas_lucegas: { single: 19, coppia: 22, famiglia: 25 }
+                },
+                variabile: {
+                    luce: { single: 35, coppia: 45, famiglia: 53 },
+                    gas: { single: 38, coppia: 51, famiglia: 68 },
+                    luce_lucegas: { single: 14, coppia: 16, famiglia: 19 },
+                    gas_lucegas: { single: 20, coppia: 23, famiglia: 26 }
+                }
+            };
+             const pdfLinks = {
+                'variabile': {
+                    'lucegas': 'https://vivienergia.imgix.net/uploads/2025/09/18100606/documento-VIVIConsapevoleLuceGas-VAR-190925021025.pdf',
+                    'luce': 'https://vivienergia.imgix.net/uploads/2025/09/18100607/documento-VIVIConsapevoleLuce-VAR-190925021025.pdf',
+                    'gas': 'https://vivienergia.imgix.net/uploads/2025/09/18100610/documento-VIVIConsapevoleGas-VAR-190925021025.pdf'
+                },
+                'fisso': {
+                    'lucegas': 'https://vivienergia.imgix.net/uploads/2025/09/18100612/documento-VIVIConsapevoleLuceGas-FIX-190925021025.pdf',
+                    'luce': 'https://vivienergia.imgix.net/uploads/2025/09/18100611/documento-VIVIConsapevoleLuce-FIX-190925021025.pdf',
+                    'gas': 'https://vivienergia.imgix.net/uploads/2025/09/18100609/documento-VIVIConsapevoleGas-FIX-190925021025.pdf'
+                }
+            };
+
+            const supplyRadios = document.querySelectorAll('input[name="supply"]');
+            const resultsContainer = document.getElementById('results-container');
+            const profilingBox = document.getElementById('profiling-box');
+            const popup = document.getElementById('operation-popup');
+            const popupContinueBtn = document.getElementById('popup-continue');
+            const offerIds = {
+                'variabile': { 'lucegas': '46404', 'luce': '46406', 'gas': '46405' },
+                'fisso': { 'lucegas': '46402', 'luce': '46401', 'gas': '46403' }
+            };
+            let referrerValue = 'default-value';
+            const iconLuceHTML = \`<span class="material-symbols-outlined" style="font-size: 24px; vertical-align: middle;">lightbulb</span>\`;
+            const iconGasHTML = \`<span class="material-symbols-outlined" style="font-size: 24px; vertical-align: middle;">mode_heat</span>\`;
+
+            function formatPrice(price) { return price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' }); }
+
+            function renderFinalResult(items, total, estimates, pdfUrl) {
+                if (!resultsContainer) return;
+                if (items.length === 0) {
+                    resultsContainer.innerHTML = \`<div class="text-center p-8 bg-gray-700/50 rounded-lg"><p class="text-gray-400">Seleziona un servizio per visualizzare il riepilogo.</p></div>\`;
+                    return;
+                }
+                const itemsHTML = items.map(item => {
+                    let detailsHTML = \`<h4 class="font-bold text-white">\${item.name}</h4>\`;
+                    if (item.name.includes('LuceGas')) {
+                        const luceDetails = item.details.luce.map(d => \`<div class="flex justify-between"><dt>\${d.label}</dt><dd class="font-mono">\${d.value}</dd></div>\`).join('');
+                        const gasDetails = item.details.gas.map(d => \`<div class="flex justify-between"><dt>\${d.label}</dt><dd class="font-mono">\${d.value}</dd></div>\`).join('');
+                        detailsHTML += \`<div class="mt-2 pl-4 border-l-2 border-gray-600"><p class="font-semibold text-sm text-gray-400">Luce</p><dl class="text-sm text-gray-300 mt-1">\${luceDetails}<div class="flex justify-between"><dt>Quota fissa</dt><dd class="font-mono">\${formatPrice(item.price_luce)}/mese</dd></div></dl></div><div class="mt-2 pl-4 border-l-2 border-gray-600"><p class="font-semibold text-sm text-gray-400">Gas</p><dl class="text-sm text-gray-300 mt-1">\${gasDetails}<div class="flex justify-between"><dt>Quota fissa</dt><dd class="font-mono">\${formatPrice(item.price_gas)}/mese</dd></div></dl></div>\`;
+                    } else {
+                         const energyDetails = item.details.map(d => \`<div class="flex justify-between"><dt>\${d.label}</dt><dd class="font-mono">\${d.value}</dd></div>\`).join('');
+                         detailsHTML += \`<dl class="text-sm text-gray-300 mt-2 pl-4">\${energyDetails}<div class="flex justify-between"><dt>Quota fissa</dt><dd class="font-mono">\${formatPrice(item.price)}/mese</dd></div></dl>\`;
+                    }
+                    return \`<li class="py-4">\${detailsHTML}</li>\`;
+                }).join('');
+                
+                const estimateLines = [];
+                if (estimates.luce > 0) estimateLines.push(\`<div class="flex justify-between items-center"><span class="flex items-center gap-2 font-semibold text-gray-300">\${iconLuceHTML} Stima Mensile Luce</span><span class="font-semibold text-white">\${formatPrice(estimates.luce)}</span></div>\`);
+                if (estimates.gas > 0) estimateLines.push(\`<div class="flex justify-between items-center"><span class="flex items-center gap-2 font-semibold text-gray-300">\${iconGasHTML} Stima Mensile Gas</span><span class="font-semibold text-white">\${formatPrice(estimates.gas)}</span></div>\`);
+                
+                const pdfLinkHtml = pdfUrl === '#' ? '' : \`<div class="mt-4 text-center">
+                    <a id="pdf-link" href="\${pdfUrl}" target="_blank" rel="noopener noreferrer" class="text-xs text-gray-400 hover:text-gray-200 transition-colors duration-200">
+                        Dettagli Offerta e Condizioni Economiche
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                    </a>
+                </div>\`;
+
+                resultsContainer.innerHTML = \`<div class="fade-in flex flex-col h-full"><div class="flex-grow"><ul class="divide-y divide-gray-600 -mt-4">\${itemsHTML}</ul><div class="mt-6 pt-4 border-t-2 border-dashed border-gray-600 space-y-2">\${estimateLines.join('')}<div class="flex justify-between items-center pt-2"><span class="text-lg font-bold text-white">Totale Stima Mensile Primo anno*</span><span class="text-3xl font-black text-vivi-gradient">\${formatPrice(total)}</span></div></div><p class="text-xs text-gray-400 mt-2">*Il calcolo della stima Spesa annua è effettuato seguendo i criteri previsti dalla normativa ARERA.</p></div><div><div class="mt-6 flex justify-center"><button id="open-popup-btn" class="cta-button-gradient text-white font-bold py-3 px-12 rounded-full transform focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50">Sottoscrivi ora</button></div>\${pdfLinkHtml}</div></div>\`;
+            }
+            
+            function updateResults() {
+                const priceTypeInput = document.querySelector('input[name="price-type"]:checked');
+                if (!priceTypeInput) return;
+                const priceType = priceTypeInput.value;
+                const supply = document.querySelector('input[name="supply"]:checked')?.value;
+                const profile = document.querySelector('input[name="people"]:checked')?.value || 'single';
+
+                let total = 0, selectedItems = [], hasEnergy = !!supply, estimates = { luce: 0, gas: 0 };
+                let pdfUrl = '#';
+
+                if (hasEnergy) {
+                    pdfUrl = pdfLinks[priceType]?.[supply] || '#';
+                    const offer = OFFERS.energy[supply][priceType];
+                    selectedItems.push(offer);
+                    if (supply === 'luce') {
+                        estimates.luce = ESTIMATES[priceType].luce[profile];
+                    } else if (supply === 'gas') {
+                        estimates.gas = ESTIMATES[priceType].gas[profile];
+                    } else if (supply === 'lucegas') {
+                        estimates.luce = ESTIMATES[priceType].luce_lucegas[profile];
+                        estimates.gas = ESTIMATES[priceType].gas_lucegas[profile];
+                    }
+                }
+                total = estimates.luce + estimates.gas;
+                renderFinalResult(selectedItems, total, estimates, pdfUrl);
+            }
+
+            function handleOptionsVisibility() {
+                const hasEnergy = !!document.querySelector('input[name="supply"]:checked');
+                if (profilingBox) profilingBox.classList.toggle('hidden', !hasEnergy);
+                if (profilingBox) profilingBox.classList.toggle('fade-in-fast', hasEnergy);
+            }
+
+            function startCountdown(targetDate) {
+                const countdownElement = document.getElementById('countdown-timer');
+                if (!countdownElement) return;
+                const targetDateObj = new Date(targetDate);
+                const dateString = targetDateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                if (!countdownEnabled) {
+                    countdownElement.innerHTML = \`<p class="text-sm font-medium text-gray-600">Condizioni valide fino al \${dateString}.</p>\`;
+                    return;
+                }
+
+                const interval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = targetDate - now;
+
+                    if (distance < 0) {
+                        clearInterval(interval);
+                        countdownElement.innerHTML = \`<p class="text-sm font-medium text-gray-600">Condizioni valide fino al \${dateString}.</p>\`;
+                        return;
+                    }
+
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    countdownElement.innerHTML = \`
+                        <p class="text-sm font-medium text-gray-600 mb-3">L'offerta scade tra:</p>
+                        <div class="countdown-container-google">
+                            <div class="countdown-item-google">
+                                <div class="countdown-value-google">\${String(days).padStart(2, '0')}</div>
+                                <div class="countdown-label-google">Giorni</div>
+                            </div>
+                            <div class="countdown-separator-google">:</div>
+                            <div class="countdown-item-google">
+                                <div class="countdown-value-google">\${String(hours).padStart(2, '0')}</div>
+                                <div class="countdown-label-google">Ore</div>
+                            </div>
+                            <div class="countdown-separator-google">:</div>
+                            <div class="countdown-item-google">
+                                <div class="countdown-value-google">\${String(minutes).padStart(2, '0')}</div>
+                                <div class="countdown-label-google">Minuti</div>
+                            </div>
+                            <div class="countdown-separator-google">:</div>
+                            <div class="countdown-item-google">
+                                <div class="countdown-value-google">\${String(seconds).padStart(2, '0')}</div>
+                                <div class="countdown-label-google">Secondi</div>
+                            </div>
+                        </div>
+                        <p class="text-xs font-medium text-gray-500 mt-3">Condizioni valide fino al \${dateString}.</p>
+                    \`;
+
+                }, 1000);
+            }
+            
+            function initializeUI() {
+                document.querySelectorAll('input[name="price-type"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        const descFisso = document.getElementById('desc-fisso');
+                        const descVariabile = document.getElementById('desc-variabile');
+                        if (e.target.value === 'fisso') {
+                            descFisso.classList.remove('hidden');
+                            descVariabile.classList.add('hidden');
+                        } else {
+                            descFisso.classList.add('hidden');
+                            descVariabile.classList.remove('hidden');
+                        }
+                        updateResults();
+                    });
+                });
+
+                supplyRadios.forEach(radio => {
+                    radio.addEventListener('click', (e) => {
+                        if (e.target.dataset.checked === 'true') {
+                            e.target.checked = false;
+                            e.target.dataset.checked = 'false';
+                        } else {
+                            supplyRadios.forEach(r => r.dataset.checked = 'false');
+                            e.target.dataset.checked = 'true';
+                        }
+                        handleOptionsVisibility();
+                        updateResults();
+                    });
+                });
+
+                document.querySelectorAll('input[name="people"]').forEach(radio => {
+                    radio.addEventListener('change', updateResults);
+                });
+
+                if(resultsContainer) {
+                    resultsContainer.addEventListener('click', (e) => {
+                        if (e.target && e.target.id === 'open-popup-btn') {
+                            popup.classList.add('active');
+                        }
+                    });
+                }
+                if(popup) {
+                    popup.addEventListener('click', (e) => {
+                        if (e.target === popup) {
+                            popup.classList.remove('active');
+                        }
+                    });
+                }
+                if(popupContinueBtn) {
+                     popupContinueBtn.addEventListener('click', () => {
+                        const selectedSupply = document.querySelector('input[name="supply"]:checked')?.value;
+                        const selectedPriceType = document.querySelector('input[name="price-type"]:checked')?.value;
+
+                        if (selectedSupply && selectedPriceType) {
+                            const offerId = offerIds[selectedPriceType]?.[selectedSupply];
+                            if(offerId) {
+                                const finalUrl = \`https://funnel.vivienergia.it/?offerId=\${offerId}&referrer=\${referrerValue}\`;
+                                console.log("Redirecting to:", finalUrl);
+                                window.location.href = finalUrl;
+                            } else {
+                                console.error('ID dell\\'offerta non trovato per la selezione corrente.');
+                            }
+                        } else {
+                             console.error('Selezione fornitura o tipo prezzo mancante.');
+                        }
+                        popup.classList.remove('active');
+                     });
+                }
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlReferrer = urlParams.get('referrer');
+                if (urlReferrer) {
+                    referrerValue = urlReferrer;
+                    console.log(\`Referrer trovato nell'URL: \${referrerValue}\`);
+                } else {
+                    console.log("Referrer non trovato, si userà il valore di default: " + referrerValue);
+                }
+
+                handleOptionsVisibility();
+                updateResults();
+
+                const countdownTarget = new Date("Oct 2, 2025 23:59:59").getTime();
+                startCountdown(countdownTarget);
+            }
+
+            initializeUI();
+        });
+    <\/script>
+</body>
+</html>
+`;
+        
+        const initialPdfLinks = {
+            'variabile': { 'lucegas': 'https://vivienergia.imgix.net/uploads/2025/09/18100606/documento-VIVIConsapevoleLuceGas-VAR-190925021025.pdf', 'luce': 'https://vivienergia.imgix.net/uploads/2025/09/18100607/documento-VIVIConsapevoleLuce-VAR-190925021025.pdf', 'gas': 'https://vivienergia.imgix.net/uploads/2025/09/18100610/documento-VIVIConsapevoleGas-VAR-190925021025.pdf' },
+            'fisso': { 'lucegas': 'https://vivienergia.imgix.net/uploads/2025/09/18100612/documento-VIVIConsapevoleLuceGas-FIX-190925021025.pdf', 'luce': 'https://vivienergia.imgix.net/uploads/2025/09/18100611/documento-VIVIConsapevoleLuce-FIX-190925021025.pdf', 'gas': 'https://vivienergia.imgix.net/uploads/2025/09/18100609/documento-VIVIConsapevoleGas-FIX-190925021025.pdf' }
+        };
+        const initialOffers = {
+            energy: {
+                luce: { fisso: { name: "VIVIconsapevole Luce Fix", price: 10.00, details: [{ label: "Fascia 1", value: "0,1122 €/kWh" }, { label: "Fascia 2", value: "0,1200 €/kWh" }, { label: "Fascia 3", value: "0,1007 €/kWh" }] }, variabile: { name: "VIVIconsapevole Luce Flex", price: 10.00, details: [{ label: "Prezzo energia", value: "PUN + 0,0145 €/kWh" }] } },
+                gas: { fisso: { name: "VIVIconsapevole Gas Fix", price: 10.00, details: [{ label: "Prezzo gas", value: "0,4130 €/Smc" }] }, variabile: { name: "VIVIconsapevole Gas Flex", price: 10.00, details: [{ label: "Prezzo gas", value: "PSV + 0,09500 €/Smc" }] } },
+                lucegas: { fisso: { name: "VIVIconsapevole LuceGas Fix", price_luce: 10.00, price_gas: 10.00, details: { luce: [{ label: 'Fascia 1', value: '0,1122 €/kWh' }, { label: 'Fascia 2', value: '0,1200 €/kWh' }, { label: 'Fascia 3', value: '0,1007 €/kWh' }], gas: [{ label: 'Prezzo gas', value: '0,4120 €/Smc' }] } }, variabile: { name: "VIVIconsapevole LuceGas Flex", price_luce: 10.00, price_gas: 10.00, details: { luce: [{ label: 'Prezzo energia', value: 'PUN + 0,0140 €/kWh' }], gas: [{ label: 'Prezzo gas', value: 'PSV + 0,09000 €/Smc' }] } } }
+            }
+        };
+        const initialEstimates = {
+            fisso: {
+                luce: { single: 32, coppia: 41, famiglia: 48 },
+                gas: { single: 35, coppia: 47, famiglia: 62 },
+                luce_lucegas: { single: 13, coppia: 15, famiglia: 18 },
+                gas_lucegas: { single: 19, coppia: 22, famiglia: 25 }
+            },
+            variabile: {
+                luce: { single: 35, coppia: 45, famiglia: 53 },
+                gas: { single: 38, coppia: 51, famiglia: 68 },
+                luce_lucegas: { single: 14, coppia: 16, famiglia: 19 },
+                gas_lucegas: { single: 20, coppia: 23, famiglia: 26 }
+            }
+        };
+
+
+        function populateForms() {
+            document.getElementById('countdown-date').value = "2025-10-02T23:59";
+            document.getElementById('var_lucegas').value = initialPdfLinks.variabile.lucegas;
+            document.getElementById('var_luce').value = initialPdfLinks.variabile.luce;
+            document.getElementById('var_gas').value = initialPdfLinks.variabile.gas;
+            document.getElementById('fix_lucegas').value = initialPdfLinks.fisso.lucegas;
+            document.getElementById('fix_luce').value = initialPdfLinks.fisso.luce;
+            document.getElementById('fix_gas').value = initialPdfLinks.fisso.gas;
+
+            const o = initialOffers.energy;
+            document.getElementById('offer_var_luce_price').value = o.luce.variabile.price;
+            document.getElementById('offer_var_luce_details').value = o.luce.variabile.details[0].value;
+            document.getElementById('offer_var_gas_price').value = o.gas.variabile.price;
+            document.getElementById('offer_var_gas_details').value = o.gas.variabile.details[0].value;
+            
+            document.getElementById('offer_var_lucegas_price_luce').value = o.lucegas.variabile.price_luce;
+            document.getElementById('offer_var_lucegas_price_gas').value = o.lucegas.variabile.price_gas;
+            document.getElementById('offer_var_lucegas_luce').value = o.lucegas.variabile.details.luce[0].value;
+            document.getElementById('offer_var_lucegas_gas').value = o.lucegas.variabile.details.gas[0].value;
+
+            document.getElementById('offer_fix_luce_price').value = o.luce.fisso.price;
+            document.getElementById('offer_fix_luce_f1').value = o.luce.fisso.details[0].value;
+            document.getElementById('offer_fix_luce_f2').value = o.luce.fisso.details[1].value;
+            document.getElementById('offer_fix_luce_f3').value = o.luce.fisso.details[2].value;
+            document.getElementById('offer_fix_gas_price').value = o.gas.fisso.price;
+            document.getElementById('offer_fix_gas_details').value = o.gas.fisso.details[0].value;
+
+            document.getElementById('offer_fix_lucegas_price_luce').value = o.lucegas.fisso.price_luce;
+            document.getElementById('offer_fix_lucegas_price_gas').value = o.lucegas.fisso.price_gas;
+            document.getElementById('offer_fix_lucegas_f1').value = o.lucegas.fisso.details.luce[0].value;
+            document.getElementById('offer_fix_lucegas_f2').value = o.lucegas.fisso.details.luce[1].value;
+            document.getElementById('offer_fix_lucegas_f3').value = o.lucegas.fisso.details.luce[2].value;
+            document.getElementById('offer_fix_lucegas_gas').value = o.lucegas.fisso.details.gas[0].value;
+            
+            const e = initialEstimates;
+            // Forniture singole
+            document.getElementById('est_var_luce_single').value = e.variabile.luce.single;
+            document.getElementById('est_var_luce_coppia').value = e.variabile.luce.coppia;
+            document.getElementById('est_var_luce_famiglia').value = e.variabile.luce.famiglia;
+            document.getElementById('est_var_gas_single').value = e.variabile.gas.single;
+            document.getElementById('est_var_gas_coppia').value = e.variabile.gas.coppia;
+            document.getElementById('est_var_gas_famiglia').value = e.variabile.gas.famiglia;
+            
+            document.getElementById('est_fix_luce_single').value = e.fisso.luce.single;
+            document.getElementById('est_fix_luce_coppia').value = e.fisso.luce.coppia;
+            document.getElementById('est_fix_luce_famiglia').value = e.fisso.luce.famiglia;
+            document.getElementById('est_fix_gas_single').value = e.fisso.gas.single;
+            document.getElementById('est_fix_gas_coppia').value = e.fisso.gas.coppia;
+            document.getElementById('est_fix_gas_famiglia').value = e.fisso.gas.famiglia;
+            
+            // Forniture dual
+            document.getElementById('est_var_luce_lucegas_single').value = e.variabile.luce_lucegas.single;
+            document.getElementById('est_var_luce_lucegas_coppia').value = e.variabile.luce_lucegas.coppia;
+            document.getElementById('est_var_luce_lucegas_famiglia').value = e.variabile.luce_lucegas.famiglia;
+            document.getElementById('est_var_gas_lucegas_single').value = e.variabile.gas_lucegas.single;
+            document.getElementById('est_var_gas_lucegas_coppia').value = e.variabile.gas_lucegas.coppia;
+            document.getElementById('est_var_gas_lucegas_famiglia').value = e.variabile.gas_lucegas.famiglia;
+
+            document.getElementById('est_fix_luce_lucegas_single').value = e.fisso.luce_lucegas.single;
+            document.getElementById('est_fix_luce_lucegas_coppia').value = e.fisso.luce_lucegas.coppia;
+            document.getElementById('est_fix_luce_lucegas_famiglia').value = e.fisso.luce_lucegas.famiglia;
+            document.getElementById('est_fix_gas_lucegas_single').value = e.fisso.gas_lucegas.single;
+            document.getElementById('est_fix_gas_lucegas_coppia').value = e.fisso.gas_lucegas.coppia;
+            document.getElementById('est_fix_gas_lucegas_famiglia').value = e.fisso.gas_lucegas.famiglia;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateForms();
+
+            const generateBtn = document.getElementById('generate-btn');
+            const resultContainer = document.getElementById('result-container');
+            const outputCodeEl = document.getElementById('output-code');
+            const copyBtn = document.getElementById('copy-btn');
+            const copyBtnText = document.getElementById('copy-btn-text');
+
+            generateBtn.addEventListener('click', () => {
+
+                const countdownEnabled = document.getElementById('countdown-toggle').checked;
+                const newCountdownEnabledBlock = `const countdownEnabled = ${countdownEnabled};`;
+
+                const countdownValue = document.getElementById('countdown-date').value;
+                let formattedDate = "Oct 2, 2025 23:59:59";
+                if(countdownValue) {
+                    const dateObj = new Date(countdownValue);
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const month = monthNames[dateObj.getMonth()];
+                    const day = dateObj.getDate();
+                    const year = dateObj.getFullYear();
+                    const hours = String(dateObj.getHours()).padStart(2, '0');
+                    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                    formattedDate = `${month} ${day}, ${year} ${hours}:${minutes}:59`;
+                }
+                const newCountdownBlock = `const countdownTarget = new Date("${formattedDate}").getTime();`;
+
+                const newPdfLinks = {
+                    'variabile': { 'lucegas': document.getElementById('var_lucegas').value, 'luce': document.getElementById('var_luce').value, 'gas': document.getElementById('var_gas').value },
+                    'fisso': { 'lucegas': document.getElementById('fix_lucegas').value, 'luce': document.getElementById('fix_luce').value, 'gas': document.getElementById('fix_gas').value }
+                };
+
+                 const newOffers = {
+                    energy: {
+                        luce: {
+                            fisso: { name: "VIVIconsapevole Luce Fix", price: parseFloat(document.getElementById('offer_fix_luce_price').value), details: [{ label: "Fascia 1", value: document.getElementById('offer_fix_luce_f1').value }, { label: "Fascia 2", value: document.getElementById('offer_fix_luce_f2').value }, { label: "Fascia 3", value: document.getElementById('offer_fix_luce_f3').value }] },
+                            variabile: { name: "VIVIconsapevole Luce Flex", price: parseFloat(document.getElementById('offer_var_luce_price').value), details: [{ label: "Prezzo energia", value: document.getElementById('offer_var_luce_details').value }] }
+                        },
+                        gas: {
+                            fisso: { name: "VIVIconsapevole Gas Fix", price: parseFloat(document.getElementById('offer_fix_gas_price').value), details: [{ label: "Prezzo gas", value: document.getElementById('offer_fix_gas_details').value }] },
+                            variabile: { name: "VIVIconsapevole Gas Flex", price: parseFloat(document.getElementById('offer_var_gas_price').value), details: [{ label: "Prezzo gas", value: document.getElementById('offer_var_gas_details').value }] }
+                        },
+                        lucegas: {
+                            fisso: { name: "VIVIconsapevole LuceGas Fix", price_luce: parseFloat(document.getElementById('offer_fix_lucegas_price_luce').value), price_gas: parseFloat(document.getElementById('offer_fix_lucegas_price_gas').value), details: { luce: [{ label: 'Fascia 1', value: document.getElementById('offer_fix_lucegas_f1').value }, { label: 'Fascia 2', value: document.getElementById('offer_fix_lucegas_f2').value }, { label: 'Fascia 3', value: document.getElementById('offer_fix_lucegas_f3').value }], gas: [{ label: 'Prezzo gas', value: document.getElementById('offer_fix_lucegas_gas').value }] } },
+                            variabile: { name: "VIVIconsapevole LuceGas Flex", price_luce: parseFloat(document.getElementById('offer_var_lucegas_price_luce').value), price_gas: parseFloat(document.getElementById('offer_var_lucegas_price_gas').value), details: { luce: [{ label: 'Prezzo energia', value: document.getElementById('offer_var_lucegas_luce').value }], gas: [{ label: 'Prezzo gas', value: document.getElementById('offer_var_lucegas_gas').value }] } }
+                        }
+                    }
+                };
+
+                 const newEstimates = {
+                    fisso: {
+                        luce: { single: parseInt(document.getElementById('est_fix_luce_single').value), coppia: parseInt(document.getElementById('est_fix_luce_coppia').value), famiglia: parseInt(document.getElementById('est_fix_luce_famiglia').value) },
+                        gas: { single: parseInt(document.getElementById('est_fix_gas_single').value), coppia: parseInt(document.getElementById('est_fix_gas_coppia').value), famiglia: parseInt(document.getElementById('est_fix_gas_famiglia').value) },
+                        luce_lucegas: { single: parseInt(document.getElementById('est_fix_luce_lucegas_single').value), coppia: parseInt(document.getElementById('est_fix_luce_lucegas_coppia').value), famiglia: parseInt(document.getElementById('est_fix_luce_lucegas_famiglia').value) },
+                        gas_lucegas: { single: parseInt(document.getElementById('est_fix_gas_lucegas_single').value), coppia: parseInt(document.getElementById('est_fix_gas_lucegas_coppia').value), famiglia: parseInt(document.getElementById('est_fix_gas_lucegas_famiglia').value) }
+                    },
+                    variabile: {
+                        luce: { single: parseInt(document.getElementById('est_var_luce_single').value), coppia: parseInt(document.getElementById('est_var_luce_coppia').value), famiglia: parseInt(document.getElementById('est_var_luce_famiglia').value) },
+                        gas: { single: parseInt(document.getElementById('est_var_gas_single').value), coppia: parseInt(document.getElementById('est_var_gas_coppia').value), famiglia: parseInt(document.getElementById('est_var_gas_famiglia').value) },
+                        luce_lucegas: { single: parseInt(document.getElementById('est_var_luce_lucegas_single').value), coppia: parseInt(document.getElementById('est_var_luce_lucegas_coppia').value), famiglia: parseInt(document.getElementById('est_var_luce_lucegas_famiglia').value) },
+                        gas_lucegas: { single: parseInt(document.getElementById('est_var_gas_lucegas_single').value), coppia: parseInt(document.getElementById('est_var_gas_lucegas_coppia').value), famiglia: parseInt(document.getElementById('est_var_gas_lucegas_famiglia').value) }
+                    }
+                };
+                
+                const newPdfLinksBlock = `const pdfLinks = ${JSON.stringify(newPdfLinks, null, 16).replace(/"/g, "'")};`;
+                const newOffersBlock = `const OFFERS = ${JSON.stringify(newOffers, null, 20)};`;
+                const newEstimatesBlock = `const ESTIMATES = ${JSON.stringify(newEstimates, null, 16)};`;
+
+                let updatedHtmlContent = originalHtmlContent
+                    .replace('// COUNTDOWN_ENABLED_PLACEHOLDER', newCountdownEnabledBlock)
+                    .replace(/const countdownTarget = new Date\(.*?\)\.getTime\(\);/, newCountdownBlock)
+                    .replace(/const pdfLinks = {[\s\S]*?};/, newPdfLinksBlock)
+                    .replace(/const OFFERS = {[\s\S]*?};/, newOffersBlock)
+                    .replace(/const ESTIMATES = {[\s\S]*?};/, newEstimatesBlock);
+                
+                outputCodeEl.textContent = updatedHtmlContent.trim();
+                resultContainer.classList.remove('hidden');
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            });
+            
+            copyBtn.addEventListener('click', () => {
+                const codeToCopy = outputCodeEl.textContent;
+                const textArea = document.createElement("textarea");
+                textArea.value = codeToCopy;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if(successful) {
+                        copyBtnText.textContent = 'Copiato!';
+                        copyBtn.classList.add('bg-green-600');
+                        setTimeout(() => {
+                            copyBtnText.textContent = 'Copia Codice';
+                            copyBtn.classList.remove('bg-green-600');
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Impossibile copiare', err);
+                }
+                document.body.removeChild(textArea);
+            });
+        });
+    </script>
+</body>
+</html>
+
